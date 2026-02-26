@@ -1,76 +1,62 @@
 # MicroservicesProject
 
-## 📋 Proje Hakkında
+## Proje Hakkında
 
-.NET 8 tabanlı mikroservis mimarisiyle geliştirilmiş backend projesidir. SOLID prensipleri, 12 Faktör Uygulama metodolojisi ve Onion Architecture kullanılarak tasarlanmıştır.
+.NET 8 ile geliştirilmiş, mikroservis mimarisine sahip bir backend projesidir. Onion Architecture, SOLID prensipleri ve 12 Faktör Uygulama metodolojisi temel alınarak tasarlanmıştır.
 
-**Teknolojiler:** .NET 8, C#, SQL Server, Redis, RabbitMQ, Serilog, MediatR, FluentValidation, YARP, Entity Framework Core
+Kullanılan teknolojiler: .NET 8, C#, SQL Server, Redis, RabbitMQ, Serilog, MediatR, FluentValidation, YARP, Entity Framework Core
 
-## 🏗️ Mimari Yapı
+## Proje Yapısı
 
 ```
 MicroservicesProject/
 ├── src/
-│   ├── ApiGateway/                          # YARP Reverse Proxy + Rate Limiting + JWT
+│   ├── ApiGateway/                            # YARP Reverse Proxy + Rate Limiting + JWT
 │   ├── Shared/
-│   │   ├── Shared.Common/                   # Ortak modeller (ApiResponse, PaginatedResult)
-│   │   └── Shared.Events/                   # RabbitMQ event modelleri
+│   │   ├── Shared.Common/                     # Ortak modeller (ApiResponse, PaginatedResult)
+│   │   └── Shared.Events/                     # RabbitMQ event modelleri
 │   └── Services/
-│       ├── AuthService/                     # Kimlik Doğrulama Servisi
-│       │   ├── AuthService.Domain/          # Entity'ler (ApplicationUser, RefreshToken)
-│       │   ├── AuthService.Application/     # Interface'ler, DTO'lar
-│       │   ├── AuthService.Infrastructure/  # Identity, JWT, EF Core, DbContext
-│       │   └── AuthService.API/             # Controller'lar, Program.cs
-│       ├── ProductService/                  # Ürün Yönetim Servisi
-│       │   ├── ProductService.Domain/       # Entity'ler, Repository Interface'leri
-│       │   ├── ProductService.Application/  # CQRS Commands/Queries, Validators
-│       │   ├── ProductService.Infrastructure/ # Redis Cache, RabbitMQ EventBus
-│       │   ├── ProductService.Persistence/  # EF Core DbContext, Repositories
-│       │   └── ProductService.API/          # Controller'lar, Program.cs
-│       └── LogService/                      # Merkezi Log Servisi
-│           ├── LogService.Domain/           # Entity'ler (LogEntry)
-│           ├── LogService.Application/      # Interface'ler, DTO'lar
-│           ├── LogService.Infrastructure/   # RabbitMQ Consumer, EF Core
-│           └── LogService.API/              # Controller'lar, Program.cs
+│       ├── AuthService/                       # Kimlik doğrulama servisi
+│       │   ├── AuthService.Domain/
+│       │   ├── AuthService.Application/
+│       │   ├── AuthService.Infrastructure/
+│       │   └── AuthService.API/
+│       ├── ProductService/                    # Ürün yönetim servisi
+│       │   ├── ProductService.Domain/
+│       │   ├── ProductService.Application/
+│       │   ├── ProductService.Infrastructure/
+│       │   ├── ProductService.Persistence/
+│       │   └── ProductService.API/
+│       └── LogService/                        # Merkezi log servisi
+│           ├── LogService.Domain/
+│           ├── LogService.Application/
+│           ├── LogService.Infrastructure/
+│           └── LogService.API/
 ```
 
-### Onion Architecture (Katman Bağımlılık Kuralı)
+Katman bağımlılık kuralı: Domain (en iç) -> Application -> Infrastructure/Persistence -> API (en dış). Domain katmanının hiçbir dış bağımlılığı yoktur; Application sadece Domain'e, Infrastructure ise Application'a bağımlıdır.
 
-```
-Domain (en iç) → Application → Infrastructure/Persistence → API (en dış)
-```
+## Kurulum
 
-- **Domain:** Entity'ler, Enum'lar — hiçbir dış bağımlılığı yoktur
-- **Application:** Interface'ler, DTO'lar, CQRS Command/Query — sadece Domain'e bağımlı
-- **Infrastructure/Persistence:** Implementasyonlar (EF Core, Redis, RabbitMQ) — Application'a bağımlı
-- **API:** Controller'lar, DI konfigürasyonu — tüm katmanlara bağımlı
+### Gereksinimler
 
-## 🔧 Kurulum ve Çalıştırma
+- .NET 8 SDK
+- SQL Server Express
+- Redis (Windows)
+- RabbitMQ + Erlang
+- Git
 
-### Ön Gereksinimler
+### Adımlar
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [SQL Server Express](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- [Redis](https://github.com/tporadowski/redis/releases) (Windows)
-- [RabbitMQ](https://www.rabbitmq.com/download.html) + [Erlang](https://www.erlang.org/downloads)
-- [Git](https://git-scm.com/downloads)
-
-### 1. Projeyi Klonlayın
+Projeyi klonlayın:
 
 ```bash
 git clone https://github.com/TevfikaTuran/MicroservicesProject.git
 cd MicroservicesProject
-```
-
-### 2. Bağımlılıkları Geri Yükleyin
-
-```bash
 dotnet restore
 ```
 
-### 3. Veritabanını Yapılandırın
-
-`appsettings.json` dosyalarındaki connection string'leri kendi SQL Server instance adınıza göre güncelleyin:
+Her servisin `appsettings.json` dosyasındaki connection string'i kendi SQL Server instance adınıza göre düzenleyin:
 
 ```json
 "ConnectionStrings": {
@@ -78,7 +64,7 @@ dotnet restore
 }
 ```
 
-### 4. Migration'ları Uygulayın
+Migration'ları uygulayın:
 
 ```bash
 dotnet ef database update --project "src/Services/AuthService/AuthService.Infrastructure" --startup-project "src/Services/AuthService/AuthService.API"
@@ -86,104 +72,86 @@ dotnet ef database update --project "src/Services/ProductService/ProductService.
 dotnet ef database update --project "src/Services/LogService/LogService.Infrastructure" --startup-project "src/Services/LogService/LogService.API"
 ```
 
-### 5. Servisleri Başlatın (Her biri ayrı terminalde)
+### Çalıştırma
+
+Her servisi ayrı bir terminal penceresinde başlatın:
 
 ```bash
-# Terminal 1 - Auth Service (Port 5001)
-dotnet run --project "src/Services/AuthService/AuthService.API"
-
-# Terminal 2 - Product Service (Port 5002)
-dotnet run --project "src/Services/ProductService/ProductService.API"
-
-# Terminal 3 - Log Service (Port 5003)
-dotnet run --project "src/Services/LogService/LogService.API"
-
-# Terminal 4 - API Gateway (Port 5000)
-dotnet run --project "src/ApiGateway"
+dotnet run --project "src/Services/AuthService/AuthService.API"        # Port 5001
+dotnet run --project "src/Services/ProductService/ProductService.API"   # Port 5002
+dotnet run --project "src/Services/LogService/LogService.API"           # Port 5003
+dotnet run --project "src/ApiGateway"                                   # Port 5000
 ```
 
-### 6. Swagger UI ile Test
+Swagger arayüzleri:
 
-| Servis | URL |
-|--------|-----|
-| Auth Service | http://localhost:5001/swagger |
-| Product Service | http://localhost:5002/swagger |
-| Log Service | http://localhost:5003/swagger |
-| API Gateway | http://localhost:5000 (tüm istekler) |
+- Auth Service: http://localhost:5001/swagger
+- Product Service: http://localhost:5002/swagger
+- Log Service: http://localhost:5003/swagger
+- API Gateway: http://localhost:5000 (tüm servislere yönlendirir)
 
-## 📡 API Endpoint'leri
+## API Endpoint'leri
 
-### Auth Service (`/api/auth`)
+### Auth Service (/api/auth)
 
 | Method | Endpoint | Açıklama | Yetki |
 |--------|----------|----------|-------|
-| POST | `/api/auth/register` | Yeni kullanıcı kaydı | - |
-| POST | `/api/auth/login` | Giriş (JWT token döner) | - |
-| POST | `/api/auth/refresh-token` | Token yenileme | - |
-| POST | `/api/auth/revoke` | Token iptal | JWT |
-| POST | `/api/auth/assign-role` | Rol atama | Admin |
+| POST | /api/auth/register | Yeni kullanıcı kaydı | - |
+| POST | /api/auth/login | Giriş, JWT token döner | - |
+| POST | /api/auth/refresh-token | Token yenileme | - |
+| POST | /api/auth/revoke | Token iptal | JWT |
+| POST | /api/auth/assign-role | Rol atama | Admin |
 
-### Product Service (`/api/products`)
-
-| Method | Endpoint | Açıklama | Yetki |
-|--------|----------|----------|-------|
-| GET | `/api/products` | Ürün listesi (Redis Cache) | - |
-| GET | `/api/products/{id}` | Ürün detay (Redis Cache) | - |
-| POST | `/api/products` | Ürün ekle (RabbitMQ event) | JWT |
-| PUT | `/api/products/{id}` | Ürün güncelle | JWT |
-
-### Log Service (`/api/logs`)
+### Product Service (/api/products)
 
 | Method | Endpoint | Açıklama | Yetki |
 |--------|----------|----------|-------|
-| GET | `/api/logs` | Log kayıtları | - |
+| GET | /api/products | Ürün listesi (Redis cache) | - |
+| GET | /api/products/{id} | Ürün detay (Redis cache) | - |
+| POST | /api/products | Ürün ekle | JWT |
+| PUT | /api/products/{id} | Ürün güncelle | JWT |
 
-## 🎯 Design Pattern'ler ve Prensipler
+### Log Service (/api/logs)
 
-### CQRS (Command Query Responsibility Segregation)
-- **Commands:** CreateProductCommand, UpdateProductCommand → Veritabanına yazma
-- **Queries:** GetProductsQuery, GetProductByIdQuery → Redis Cache'den okuma
-- **MediatR** ile pipeline behavior (ValidationBehavior)
+| Method | Endpoint | Açıklama | Yetki |
+|--------|----------|----------|-------|
+| GET | /api/logs | Log kayıtları | - |
 
-### Event-Driven Architecture
-- **RabbitMQ** ile asenkron iletişim
-- ProductCreatedEvent → Log Service tarafından tüketilir
-- ProductUpdatedEvent → Log Service tarafından tüketilir
+## Teknik Detaylar
 
-### Cache-Aside Pattern
-- Redis ile ürün sorguları önbelleklenir
-- Cache Invalidation: Ürün eklendiğinde/güncellendiğinde cache temizlenir
+### CQRS
+
+Product Service'te komut ve sorgu işlemleri MediatR üzerinden ayrıştırılmıştır. Yazma işlemleri (CreateProductCommand, UpdateProductCommand) command handler'lar ile, okuma işlemleri (GetProductsQuery, GetProductByIdQuery) query handler'lar ile gerçekleştirilir. ValidationBehavior ile pipeline üzerinde girdi doğrulaması yapılır.
+
+### Event-Driven Mimari
+
+Ürün ekleme ve güncelleme işlemlerinde RabbitMQ üzerinden event yayınlanır. Log Service bu event'leri bir BackgroundService aracılığıyla dinler ve veritabanına kaydeder.
+
+### Cache
+
+Ürün sorguları Redis üzerinde Cache-Aside pattern ile önbelleklenir. Ürün eklendiğinde veya güncellendiğinde ilgili cache anahtarları temizlenir.
+
+### Kimlik Doğrulama ve Yetkilendirme
+
+JWT token tabanlı kimlik doğrulama uygulanmıştır. Refresh token rotation mekanizması ile token yenileme desteklenir. Roller (Admin, User, Manager) ve politikalar (RequireAdmin, RequireManager, CanManageProducts) ile yetkilendirme sağlanır.
+
+### Rate Limiting
+
+API Gateway üzerinde YARP desteğiyle Fixed Window rate limiting uygulanmıştır. Varsayılan olarak 60 saniyelik pencerede 100 istek kabul edilir, aşıldığında HTTP 429 döner.
 
 ### SOLID Prensipleri
-- **SRP:** Her sınıf tek sorumluluk (TokenService, RedisCacheService, ProductRepository)
-- **OCP:** MediatR handler'ları ile yeni özellikler eklemeye açık
-- **LSP:** IProductRepository implementasyonları birbirinin yerine geçebilir
-- **ISP:** ICacheService, IEventBus, IAuthService — ayrık interface'ler
-- **DIP:** Üst katmanlar interface'lere bağımlı, implementasyonlara değil
+
+- Single Responsibility: Her sınıf tek bir sorumluluk taşır (TokenService, RedisCacheService, ProductRepository vb.)
+- Open/Closed: MediatR handler yapısı sayesinde yeni özellikler mevcut kodu değiştirmeden eklenebilir.
+- Liskov Substitution: Repository interface'leri farklı implementasyonlarla değiştirilebilir.
+- Interface Segregation: ICacheService, IEventBus, IAuthService gibi ayrık interface'ler tanımlanmıştır.
+- Dependency Inversion: Üst katmanlar somut sınıflara değil, soyutlamalara bağımlıdır.
 
 ### 12 Faktör Uygulama
-1. **Kod Tabanı:** Git ile merkezi repo
-2. **Bağımlılıklar:** NuGet paketleri
-3. **Konfigürasyon:** appsettings.json + ortam değişkenleri
-4. **Destek Servisleri:** SQL Server, Redis, RabbitMQ bağımsız
-5. **Build/Çalışma Ayrımı:** dotnet build / dotnet run
-6. **Stateless:** JWT token tabanlı, session yok
-7. **Port Bağımsızlığı:** Her servis farklı port
-8. **Concurrency:** Async/await, yatay ölçeklenebilir
-9. **Disposability:** IDisposable, graceful shutdown
-10. **Test/Prod Paritesi:** appsettings.Development.json / appsettings.json
-11. **Loglar:** Serilog → Console + Seq (standart çıktı)
-12. **Admin Prosesleri:** EF Core migrations, seed data
 
-### Role-Based & Policy-Based Authorization
-- **Roller:** Admin, User, Manager
-- **Politikalar:** RequireAdmin, RequireManager, CanManageProducts
+Proje 12 faktör metodolojisine uygun şekilde yapılandırılmıştır: Git ile merkezi kod tabanı, NuGet ile bağımlılık yönetimi, appsettings.json ile ortama özel konfigürasyon, SQL Server/Redis/RabbitMQ bağımsız destek servisleri olarak kullanılmakta, build ve çalışma süreçleri ayrılmış durumda, JWT tabanlı stateless tasarım, her servis farklı portta, async/await ile concurrency desteği, IDisposable ile graceful shutdown, Development/Production parity, Serilog ile merkezi log yönetimi ve EF Core migration'lar ile admin süreçleri sağlanmaktadır.
 
-### Rate Limiting (YARP Gateway)
-- Fixed Window: 100 istek/60 saniye
-- Aşıldığında HTTP 429 (Too Many Requests)
-
-## 🗃️ Veritabanları
+## Veritabanları
 
 | Veritabanı | Servis | Tablolar |
 |-----------|--------|---------|
@@ -191,12 +159,12 @@ dotnet run --project "src/ApiGateway"
 | ProductServiceDb | Product | Products |
 | LogServiceDb | Log | LogEntries |
 
-## 📦 Versiyonlama
+## Versiyonlama
 
 - `master` — Ana branch
 - `test/v1.0.0` — Test ortamı
 - `prod/v1.0.0` — Production ortamı
 
-## 📂 Kod Deposu
+## Kod Deposu
 
-👉 [https://github.com/TevfikaTuran/MicroservicesProject](https://github.com/TevfikaTuran/MicroservicesProject)
+https://github.com/TevfikaTuran/MicroservicesProject
