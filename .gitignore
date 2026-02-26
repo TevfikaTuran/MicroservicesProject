@@ -1,0 +1,16 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.csproj.user
+## NuGet
+packages/
+*.nupkg
+## Logs
+*.log
+## Secrets
+appsettings.Production.json
